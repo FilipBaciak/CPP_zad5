@@ -1,0 +1,1 @@
+g++ -Wall -Wextra -O2 -std=c++23 playlist_example.cpp -o playlist_example.o
