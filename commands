@@ -1,2 +1,3 @@
 g++ -Wall -Wextra -O2 -std=c++23 playlist_example.cpp -o playlist_example.o
 g++ -Wall -Wextra -O2 -std=c++23 playlist_tests1.cpp -o playlist_tests1.o
+g++ -Wall -Wextra -O2 -std=c++23 playlist_tests2.cpp -o playlist_tests2.o
