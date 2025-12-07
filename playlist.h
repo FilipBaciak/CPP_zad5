@@ -188,13 +188,13 @@ public:
 
     playlist() : data_(std::make_shared<Impl>()) {}
 
-    playlist(playlist const &other) : data_(other.data_) {}
+    playlist(playlist const &other) noexcept : data_(other.data_) {}
 
     playlist(playlist &&other) noexcept : data_(std::move(other.data_)) {}
 
-    ~playlist() = default;
+    ~playlist() noexcept = default;
 
-    playlist & operator=(playlist other) {
+    playlist & operator=(playlist other) noexcept {
         std::swap(data_, other.data_);
         return *this;
     }
@@ -251,7 +251,7 @@ public:
         }
     }
 
-    P & params(play_iterator const &it) {
+    P & params(play_iterator const &it) noexcept {
         if (data_ && data_.use_count() > 1) {
             // Mamy współdzielenie, musimy zrobić detach.
             // Problem: 'it' wskazuje na stary obiekt Impl.
@@ -260,11 +260,12 @@ public:
             auto old_begin = data_->sequence.begin();
             auto dist = std::distance(ConstSequenceIterator(old_begin), it.it_);
             detach();
+
             auto new_it = data_->sequence.begin();
             std::advance(new_it, dist);
 
             auto &nonconst_it = const_cast<play_iterator &>(it);
-            nonconst_it.it_ = new_it;
+            nonconst_it.it_ = new_it; // TODO is this ok?
 
             return new_it->params;
         }
@@ -286,12 +287,12 @@ public:
         return std::pair<T const &, P const &>(e.map_it->first, e.params);
     }
 
-    const std::pair<T const &, P const &> play(play_iterator const &it) const {
+    const std::pair<T const &, P const &> play(play_iterator const &it) const noexcept {
         Entry const &e = *(it.it_);
         return std::pair<T const &, P const &>(e.map_it->first, e.params);
     }
 
-    const std::pair<T const &, size_t> pay(sorted_iterator const &it) const {
+    const std::pair<T const &, size_t> pay(sorted_iterator const &it) const noexcept {
         return std::pair<T const &, size_t>(it.it_->first, it.it_->second.size());
     }
 
@@ -300,14 +301,14 @@ public:
         return e.params;
     }
 
-    size_t size() const {
+    size_t size() const noexcept {
         if (!data_) return 0;
         return data_->sequence.size();
     }
 
     // --- Metody zwracające iteratory (Const) ---
 
-    play_iterator play_begin() const {
+    play_iterator play_begin() const noexcept {
         if (!data_) return play_iterator();
         return play_iterator(data_->sequence.begin());
     }
