@@ -7,7 +7,7 @@
 #include <stdexcept>
 #include <utility>
 #include <iterator>
-#include <algorithm> // dla std::distance, std::advance
+// #include <algorithm> // dla std::distance, std::advance
 
 namespace cxx {
 
@@ -251,7 +251,7 @@ public:
         }
     }
 
-    P & params(play_iterator const &it) noexcept {
+    P & params(play_iterator const &it) {
         if (data_ && data_.use_count() > 1) {
             // Mamy współdzielenie, musimy zrobić detach.
             // Problem: 'it' wskazuje na stary obiekt Impl.
