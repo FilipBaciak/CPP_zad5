@@ -257,10 +257,15 @@ public:
             // Problem: 'it' wskazuje na stary obiekt Impl.
             // Musimy znaleźć odpowiadający mu element w nowym Impl.
             // Jedyny bezpieczny sposób to obliczenie dystansu.
-            auto dist = std::distance(ConstSequenceIterator(data_->sequence.begin()), it.it_);
+            auto old_begin = data_->sequence.begin();
+            auto dist = std::distance(ConstSequenceIterator(old_begin), it.it_);
             detach();
             auto new_it = data_->sequence.begin();
             std::advance(new_it, dist);
+
+            auto &nonconst_it = const_cast<play_iterator &>(it);
+            nonconst_it.it_ = new_it;
+
             return new_it->params;
         }
         
