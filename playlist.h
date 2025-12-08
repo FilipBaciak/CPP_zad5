@@ -15,19 +15,24 @@ template <typename T, typename P>
 class playlist {
 private:
     struct Entry;
-    
-    // Aliasy typów
+
+    // Type aliases.
+
+    // List ordered by adding order.
     using SequenceList = std::list<Entry>;
     using SequenceIterator = typename SequenceList::iterator;
     using ConstSequenceIterator = typename SequenceList::const_iterator;
 
+    // List of iterators to the sequence list for instant access.
     using OccurrencesList = std::list<SequenceIterator>;
     using OccurrencesIterator = typename OccurrencesList::iterator;
 
+    // Sorted map, which gives chronological order.
     using IndexMap = std::map<T, OccurrencesList>;
     using IndexIterator = typename IndexMap::iterator;
     using ConstIndexIterator = typename IndexMap::const_iterator;
 
+    // Each entry contains parameters of the track and iterators.
     struct Entry {
         P params;
         IndexIterator map_it;
@@ -35,42 +40,41 @@ private:
 
         Entry(P const &p, IndexIterator m_it, OccurrencesIterator d_it)
             : params(p), map_it(m_it), distinct_it(d_it) {}
-        
-        Entry(P const &p) : params(p) {}
+
+        explicit Entry(P const &p) : params(p) {}
     };
 
+    // The structure that stores all the data in the playlist.
     struct Impl {
         SequenceList sequence;
         IndexMap index;
 
+        // Adds the {iterator, param} to the sequence and updates map {track,
+        // list of iterators to the position at list}.
         void insert_track(T const &track, P const &params) {
+            // Try to add to the map
             auto lb = index.lower_bound(track);
             bool insert_new = false;
-
-            if (lb == index.end() || index.key_comp()(track, lb->first)) {
+            if (lb == index.end() || lb->first != track) {
                 lb = index.emplace_hint(lb, track, OccurrencesList{});
                 insert_new = true;
             }
 
-            // Wstępna rezerwacja w liście wystąpień
+            // Prepare for allocation error.
             try{
-                lb->second.push_back(sequence.end()); 
+                lb->second.push_back(sequence.end());
             }
             catch(...){
-
                 if(insert_new)
-                {
                     index.erase(lb);
-                }
                 throw;
             }
 
             auto occ_it = std::prev(lb->second.end());
-
+            // Add and handle allocation error.
             try {
-                // Wstawienie do sekwencji (główna lista)
+                // Add to main list.
                 sequence.emplace_back(params, lb, occ_it);
-                
                 // Aktualizacja iteratora w mapie
                 *occ_it = std::prev(sequence.end());
             } catch (...) {
@@ -85,6 +89,8 @@ private:
 
     std::shared_ptr<Impl> data_;
 
+    // Allows to manage copy on write or allocation of *data_ if such does not exist.
+    // This is also exception safe, as shared pointers have destructors.
     void detach() {
         if (!data_) {
             data_ = std::make_shared<Impl>();
@@ -97,15 +103,17 @@ private:
         }
     }
 
-public:
-    // --- Iteratory ---
 
+public:
+    // --- Iterators ---
+
+    //Play iterator is just a wrapper to the iterator of a list.
     class play_iterator {
     public:
         using iterator_category = std::bidirectional_iterator_tag;
         using value_type = std::pair<T const &, P const &>;
         using difference_type = std::ptrdiff_t;
-        using pointer = void; 
+        using pointer = void;
         using reference = void;
 
         play_iterator() = default;
@@ -138,6 +146,7 @@ public:
         explicit play_iterator(ConstSequenceIterator it) : it_(it) {}
     };
 
+    // Sorted iterator is just a wrapper to the iterator of a map.
     class sorted_iterator {
     public:
         using iterator_category = std::bidirectional_iterator_tag;
@@ -173,7 +182,7 @@ public:
         T const & operator*() const {
             return it_->first;
         }
-        
+
         T const * operator->() const {
             return &(it_->first);
         }
@@ -184,7 +193,7 @@ public:
         explicit sorted_iterator(ConstIndexIterator it) : it_(it) {}
     };
 
-    // --- Konstruktory i Destruktor ---
+    // --- Constructors & Destructor ---
 
     playlist() : data_(std::make_shared<Impl>()) {}
 
@@ -199,14 +208,19 @@ public:
         return *this;
     }
 
-    // --- Metody Modyfikujące ---
+    // --- Non Const Methods ---
 
+    // Adds track and parameters at the end.
+    // O(log n)
     void push_back(T const &track, P const &params) {
         detach();
         data_->insert_track(track, params);
     }
 
+    // Removes first element from the playlist.
+    // O(const)
     void pop_front() {
+        // Handle special cases.
         if (!data_ || data_->sequence.empty()) {
             throw std::out_of_range("pop_front, playlist empty");
         }
@@ -221,18 +235,20 @@ public:
         data_->sequence.pop_front();
     }
 
+    // Removes all occurances of a track from the playlist.
+    // O(log n + k)
     void remove(T const &track) {
-        if (!data_) { 
+        // Check for presence.
+        if (!data_) {
              throw std::invalid_argument("remove, unknown track");
         }
         auto it = data_->index.find(track);
         if (it == data_->index.end()) {
             throw std::invalid_argument("remove, unknown track");
         }
-
         detach();
-        
-        // Ponowne wyszukanie po detach
+
+        // Find again after detach and remove.
         auto map_it = data_->index.find(track);
         for (auto seq_it : map_it->second) {
             data_->sequence.erase(seq_it);
@@ -240,7 +256,10 @@ public:
         data_->index.erase(map_it);
     }
 
+    // Clears the playlist.
+    // O(n) when the data is not shared, O(const) when detach is possible.
     void clear() {
+        // Detach into empty if possible, else just clean all data.
         if (data_ && data_.use_count() > 1) {
             data_ = std::make_shared<Impl>();
         } else if (data_) {
@@ -251,34 +270,41 @@ public:
         }
     }
 
+    // Reads parameters of a given iterator.
+    // O(const)
+    // In the case of detaching here aditional O(n) distance computation is
+    // performed (overshadowed by O(n log n) deep copy.
     P & params(play_iterator const &it) {
         if (data_ && data_.use_count() > 1) {
-            // Mamy współdzielenie, musimy zrobić detach.
-            // Problem: 'it' wskazuje na stary obiekt Impl.
-            // Musimy znaleźć odpowiadający mu element w nowym Impl.
-            // Jedyny bezpieczny sposób to obliczenie dystansu.
+            // If data is shared, a detach is needed, as the user is provided
+            // with means to change the data.
+            // After that to find the equivalent of the iterator in new
+            // data, the safe way is to do it is by computing the distance
+            // from the beggining.
             auto old_begin = data_->sequence.begin();
-            auto dist = std::distance(ConstSequenceIterator(old_begin), it.it_);
+            auto dist = std::distance(
+                ConstSequenceIterator(old_begin), it.it_);
             detach();
 
             auto new_it = data_->sequence.begin();
             std::advance(new_it, dist);
-
+            // This is for convinience of use, allows to keep the iterator
+            // valid untill the element is changed, by bypassing the iterator
+            // being constant.
             auto &nonconst_it = const_cast<play_iterator &>(it);
-            nonconst_it.it_ = new_it; // TODO is this ok?
+            nonconst_it.it_ = new_it;
 
             return new_it->params;
         }
-        
-        // Jeśli jesteśmy unique, modyfikujemy w miejscu.
-        // const_cast jest bezpieczny, bo wiemy, że obiekt należy tylko do nas,
-        // a iteratory są wrapperami na const_iterator tylko dla interfejsu.
-        Entry &e = const_cast<Entry &>(*(it.it_));
+
+        // This is another bypass of const, needed to return non const value.
+        auto &e = const_cast<Entry&>(*it.it_);
         return e.params;
     }
 
-    // --- Metody Dostępowe (Const) ---
+    // --- Constant Getters (O(const) ---
 
+    // Gets the first element of the queue as <T, P> pair.
     const std::pair<T const &, P const &> front() const {
         if (!data_ || data_->sequence.empty()) {
             throw std::out_of_range("front, playlist empty");
@@ -287,42 +313,50 @@ public:
         return std::pair<T const &, P const &>(e.map_it->first, e.params);
     }
 
+    // Gets the element of the queue under the iterator as <T, P> pair.
     const std::pair<T const &, P const &> play(play_iterator const &it) const noexcept {
         Entry const &e = *(it.it_);
         return std::pair<T const &, P const &>(e.map_it->first, e.params);
     }
 
+    // Gets the track under the iterator and counts its occurences.
     const std::pair<T const &, size_t> pay(sorted_iterator const &it) const noexcept {
         return std::pair<T const &, size_t>(it.it_->first, it.it_->second.size());
     }
 
+    // Gets the params of the track under the iterator.
     const P & params(play_iterator const &it) const {
-        Entry const &e = *(it.it_);
+        Entry const &e = *it.it_;
         return e.params;
     }
 
+    // Gets the size of the playlist.
     size_t size() const noexcept {
         if (!data_) return 0;
         return data_->sequence.size();
     }
 
-    // --- Metody zwracające iteratory (Const) ---
+    // --- Constant Methods Returning Iterators O(const) ---
 
+    // Gets iterator to the first element on the playlist.
     play_iterator play_begin() const noexcept {
         if (!data_) return play_iterator();
         return play_iterator(data_->sequence.begin());
     }
 
+    // Gets iterator to the last element on the playlist.
     play_iterator play_end() const {
         if (!data_) return play_iterator();
         return play_iterator(data_->sequence.end());
     }
 
+    // Gets iterator to the first element on the playlist in sorted order.
     sorted_iterator sorted_begin() const {
         if (!data_) return sorted_iterator();
         return sorted_iterator(data_->index.begin());
     }
 
+    // Gets iterator to the last element on the playlist in sorted order.
     sorted_iterator sorted_end() const {
         if (!data_) return sorted_iterator();
         return sorted_iterator(data_->index.end());
