@@ -8,7 +8,25 @@ NC='\033[0m' # No Color
 
 # Flagi kompilatora
 CXX="g++"
-CXXFLAGS="-Wall -Wextra -O2 -std=c++23"
+# CXXFLAGS="-Wall -Wextra -O2 -std=c++23"
+CXXFLAGS="
+  -Wall
+  -Wextra
+  -Wpedantic
+  -Wshadow
+  -Woverloaded-virtual
+  -Wformat=2
+  -Wformat-security
+  -Wimplicit-fallthrough
+  -Wcast-align
+  -Wcast-qual
+  -Wunused
+  -Wuninitialized
+  -Wmaybe-uninitialized
+  -O2
+  -std=c++23
+"
+
 
 # Komenda Valgrind (dokładnie taka jak w poleceniu)
 VALGRIND_CMD="valgrind --error-exitcode=123 --leak-check=full --show-leak-kinds=all --errors-for-leak-kinds=all --run-cxx-freeres=yes -q"
@@ -85,7 +103,7 @@ fi
 # ---------------------------------------------------------
 
 # Lista plików testowych
-TEST_FILES=("playlist_tests1.cpp" "playlist_tests2.cpp" "playlist_tests3.cpp" "playlist_tests4.cpp")
+TEST_FILES=("playlist_tests1.cpp" "playlist_tests2.cpp" "playlist_tests3.cpp" "playlist_tests4.cpp" "playlist_tests5.cpp")
 
 for FILE in "${TEST_FILES[@]}"; do
     # Wyciągnij nazwę bez rozszerzenia (np. playlist_tests1)

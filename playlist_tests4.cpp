@@ -779,14 +779,14 @@ void test_25_sorted_order_independent_of_insertion() {
     pl.push_back({2, "B"}, {0, 0});
     pl.push_back({4, "D"}, {0, 0});
 
-    std::vector<int> ids;
+    std::vector<size_t> ids;
     for (auto it = pl.sorted_begin(); it != pl.sorted_end(); ++it) {
         auto pr = pl.pay(it);
         ids.push_back(pr.first.id);
     }
 
     assert(ids.size() == 5);
-    for (int i = 0; i < 5; ++i) {
+    for (size_t i = 0; i < 5; ++i) {
         assert(ids[i] == i + 1);
     }
 }

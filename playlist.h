@@ -8,6 +8,7 @@
 #include <utility>
 #include <iterator>
 #include <cstddef>
+#include <type_traits>  
 
 namespace cxx
 {
@@ -41,10 +42,13 @@ namespace cxx
             IndexIterator map_it;
             OccurrencesIterator distinct_it;
 
-            Entry(P const &p, IndexIterator m_it, OccurrencesIterator d_it)
+            Entry(P const &p,
+                IndexIterator m_it,
+                OccurrencesIterator d_it)
                 : params(p), map_it(m_it), distinct_it(d_it) {}
 
-            explicit Entry(P const &p) : params(p) {}
+            explicit Entry(P const &p)
+            : params(p) {}
         };
 
         // The structure that stores all the data in the playlist.
