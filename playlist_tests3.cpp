@@ -931,7 +931,33 @@ void test_31_MM_signature_test() {
         assert(track.name == "B");
     }
 }
+void test_32_MM_special_v2() {
+    std::clog << "[32] homemade special from pappa\n";
+    reset_all_counters();
+    playlist_t pl;
+    pl.push_back({1, "A"}, {10, 1});
+    pl.push_back({2, "F"}, {20, 2});
+    playlist_t pl2(pl);
 
+    auto it = pl2.sorted_begin();
+
+    TestParams bad{30, 3};
+
+    TestParams::throw_on_copy = true;
+    bool thrown = false;
+    try {
+        pl2.push_back({3, "C"}, bad);
+    } catch (test_exception const&) {
+        thrown = true;
+    }
+    TestParams::throw_on_copy = false;
+
+    pl.push_back({4, "B"}, {20, 2});
+    ++it;
+    auto u = pl2.pay(it);
+    assert(u.first.name == "F");
+
+}
 // ======================== main ========================
 
 int main() {
@@ -967,6 +993,7 @@ int main() {
         test_29_pay_is_read_only();
         test_30_lifetime_counters();
         test_31_MM_signature_test();
+        test_32_MM_special_v2();
     } catch (...) {
         assert(false && "Uncaught exception in tests");
     }
