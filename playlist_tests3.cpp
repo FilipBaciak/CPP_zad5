@@ -33,14 +33,17 @@ struct TestTrack {
     static int copy_count;
     static int move_count;
     static int compare_count;
+    int id_inorder;
 
     TestTrack() : id(0), name("default") {
         ++live_count;
+        id_inorder = live_count;
     }
 
     TestTrack(int id_, std::string name_)
         : id(id_), name(std::move(name_)) {
         ++live_count;
+        id_inorder = live_count;
     }
 
     TestTrack(TestTrack const& other)
@@ -50,6 +53,7 @@ struct TestTrack {
         }
         ++live_count;
         ++copy_count;
+        id_inorder = live_count;
     }
 
     TestTrack(TestTrack&& other) noexcept
@@ -136,8 +140,8 @@ struct TestParams {
     int volume{};
     int tag{};
 
+    bool throw_on_copy_local = false;
     static bool throw_on_copy;
-
     static int live_count;
     static int copy_count;
 
@@ -151,7 +155,7 @@ struct TestParams {
 
     TestParams(TestParams const& other)
         : volume(other.volume), tag(other.tag) {
-        if (throw_on_copy) {
+        if (throw_on_copy || other.throw_on_copy_local) {
             throw test_exception{};
         }
         ++live_count;
@@ -160,7 +164,7 @@ struct TestParams {
 
     TestParams& operator=(TestParams const& other) {
         if (this != &other) {
-            if (throw_on_copy) {
+            if (throw_on_copy || throw_on_copy_local) {
                 throw test_exception{};
             }
             volume = other.volume;
@@ -784,14 +788,14 @@ void test_25_sorted_order_independent_of_insertion() {
     pl.push_back({2, "B"}, {0, 0});
     pl.push_back({4, "D"}, {0, 0});
 
-    std::vector<size_t> ids;
+    std::vector<int> ids;
     for (auto it = pl.sorted_begin(); it != pl.sorted_end(); ++it) {
         auto pr = pl.pay(it);
         ids.push_back(pr.first.id);
     }
 
     assert(ids.size() == 5);
-    for (size_t i = 0; i < 5; ++i) {
+    for (int i = 0; i < 5; ++i) {
         assert(ids[i] == i + 1);
     }
 }
@@ -931,6 +935,7 @@ void test_31_MM_signature_test() {
         assert(track.name == "B");
     }
 }
+
 void test_32_MM_special_v2() {
     std::clog << "[32] homemade special from pappa\n";
     reset_all_counters();
@@ -939,24 +944,23 @@ void test_32_MM_special_v2() {
     pl.push_back({2, "F"}, {20, 2});
     playlist_t pl2(pl);
 
-    auto it = pl2.sorted_begin();
+    auto it = pl2.play_begin();
 
-    TestParams bad{30, 3};
-
-    TestParams::throw_on_copy = true;
+    TestParams bad1 = {30, 3};
+    bad1.throw_on_copy_local = true;
+    TestParams& bad = bad1;
     bool thrown = false;
     try {
-        pl2.push_back({3, "C"}, bad);
+        pl2.push_back({3, "C"}, bad1);
     } catch (test_exception const&) {
         thrown = true;
     }
-    TestParams::throw_on_copy = false;
+    assert(thrown);
 
-    pl.push_back({4, "B"}, {20, 2});
-    ++it;
-    auto u = pl2.pay(it);
-    assert(u.first.name == "F");
-
+    pl.pop_front();
+    pl.pop_front();
+    auto u = pl2.params(it);
+    u.tag++;
 }
 // ======================== main ========================
 
