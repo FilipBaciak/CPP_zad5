@@ -38,7 +38,7 @@ namespace cxx
         // Each entry contains parameters of the track and iterators.
         struct Entry
         {
-            P params;
+            mutable P params;
             IndexIterator map_it;
             OccurrencesIterator distinct_it;
 
@@ -422,7 +422,7 @@ namespace cxx
             }
 
             // This is another bypass of const, needed to return non const value.
-            auto &e = const_cast<Entry &>(*it.it_);
+            const auto &e = *it.it_;
             return e.params;
         }
 
