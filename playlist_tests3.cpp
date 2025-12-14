@@ -492,7 +492,8 @@ void test_13_params_nonconst_detach() {
     TestParams& ref = p1.params(it1);
     ref.volume = 99;
 
-    auto pr1a = p1.play(it1);
+    auto pr1a = p1.play(p1.play_begin());
+    // auto pr1a = p1.play(it1);
     auto pr2a = p2.play(it2);
 
     assert(pr1a.second.volume == 99);
@@ -825,7 +826,8 @@ void test_26_multiple_cow_chain() {
     ref2.tag = 77;
 
     auto pr1a = p1.play(it1);
-    auto pr2a = p2.play(it2);
+    // auto pr2a = p2.play(it2);
+    auto pr2a = p2.play(p2.play_begin());
     auto pr3a = p3.play(it3);
 
     assert(&pr2a.second != &pr1a.second);
@@ -949,6 +951,7 @@ void test_32_MM_special_v2() {
     TestParams bad1 = {30, 3};
     bad1.throw_on_copy_local = true;
     TestParams& bad = bad1;
+    (void) bad;
     bool thrown = false;
     try {
         pl2.push_back({3, "C"}, bad1);

@@ -291,7 +291,8 @@ void test_07_params_const_vs_nonconst() {
     
     // Jeśli COW zadziałało, p2 powinno mieć stare params
     ASSERT_EQ(cp2.params(it).val, 10);
-    ASSERT_EQ(p1.params(it_p1).val, 20);
+    ASSERT_EQ(p1.params(p1.play_begin()).val, 20);
+    // ASSERT_EQ(p1.params(it_p1).val, 20);
     
     // Jeśli kopia nie nastąpiła, to p2.val byłoby 20 (BŁĄD).
     // Jeśli nastąpiła, to copies powinno wzrosnąć (dla Tracka wewnątrz, bo deep copy playlisty kopiuje tracki).

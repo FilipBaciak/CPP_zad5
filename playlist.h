@@ -106,6 +106,7 @@ namespace cxx
 
         std::shared_ptr<Impl> data_;
         std::shared_ptr<Impl> safeguard_;
+
         // Allows to manage copy on write or allocation
         // of *data_ if such does not exist.
         // This is also exception safe, as shared pointers have destructors.
@@ -127,8 +128,6 @@ namespace cxx
         }
 
         // Detach improved by a safeguard mechanism in case of an error.
-        // Use: guardedDetach(); try: *dangerous code* catch: reverse(detach),
-        // after that: finalizeDetach().
         void guardedDetach()
         {
             if (!data_)
@@ -418,11 +417,6 @@ namespace cxx
 
                 auto new_it = data_->sequence.begin();
                 std::advance(new_it, dist);
-                // This is for convenience of use, allows to keep the iterator
-                // valid until the element is changed, by bypassing the iterator
-                // being constant.
-                auto &nonconst_it = const_cast<play_iterator &>(it);
-                nonconst_it.it_ = new_it;
 
                 return new_it->params;
             }
