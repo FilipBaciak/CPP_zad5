@@ -8,7 +8,7 @@
 #include <utility>
 #include <iterator>
 #include <cstddef>
-#include <type_traits>  
+#include <type_traits>
 
 namespace cxx
 {
@@ -105,8 +105,8 @@ namespace cxx
         };
 
         std::shared_ptr<Impl> data_;
-
-        // Allows to manage copy on write or allocation 
+        std::shared_ptr<Impl> safeguard_;
+        // Allows to manage copy on write or allocation
         // of *data_ if such does not exist.
         // This is also exception safe, as shared pointers have destructors.
         void detach()
@@ -124,6 +124,41 @@ namespace cxx
                 }
                 data_ = std::move(new_data);
             }
+        }
+
+        // Detach improved by a safeguard mechanism in case of an error.
+        // Use: guardedDetach(); try: *dangerous code* catch: reverse(detach),
+        // after that: finalizeDetach().
+        void guardedDetach()
+        {
+            if (!data_)
+            {
+                data_ = std::make_shared<Impl>();
+            }
+            else if (data_.use_count() > 1)
+            {
+                auto new_data = std::make_shared<Impl>();
+                for (auto const &entry : data_->sequence)
+                {
+                    new_data->insert_track(entry.map_it->first, entry.params);
+                }
+                safeguard_ = data_;
+                data_ = std::move(new_data);
+            }
+        }
+
+        void reverseDetach()
+        {
+            if(safeguard_ != nullptr)
+            {
+                data_ = safeguard_;
+                safeguard_.reset();
+            }
+        }
+
+        void finalizeDetach()
+        {
+            safeguard_.reset();
         }
 
     public:
@@ -263,8 +298,18 @@ namespace cxx
         // O(log n)
         void push_back(T const &track, P const &params)
         {
-            detach();
-            data_->insert_track(track, params);
+            guardedDetach();
+
+            try
+            {
+                data_->insert_track(track, params);
+            }
+            catch (...)
+            {
+                reverseDetach();
+                throw;
+            }
+            finalizeDetach();
         }
 
         // Removes first element from the playlist.
@@ -276,16 +321,26 @@ namespace cxx
             {
                 throw std::out_of_range("pop_front, playlist empty");
             }
-            detach();
+            guardedDetach();
 
-            auto it = data_->sequence.begin();
-            it->map_it->second.erase(it->distinct_it);
-
-            if (it->map_it->second.empty())
+            try
             {
-                data_->index.erase(it->map_it);
+                auto it = data_->sequence.begin();
+                it->map_it->second.erase(it->distinct_it);
+
+                if (it->map_it->second.empty())
+                {
+                    data_->index.erase(it->map_it);
+                }
+                data_->sequence.pop_front();
             }
-            data_->sequence.pop_front();
+            catch (...)
+            {
+                reverseDetach();
+                throw;
+            }
+
+            finalizeDetach();
         }
 
         // Removes all occurences of a track from the playlist.
@@ -302,15 +357,25 @@ namespace cxx
             {
                 throw std::invalid_argument("remove, unknown track");
             }
-            detach();
+            guardedDetach();
 
-            // Find again after detach and remove.
-            auto map_it = data_->index.find(track);
-            for (auto seq_it : map_it->second)
+            try
             {
-                data_->sequence.erase(seq_it);
+                // Find again after detach and remove.
+                auto map_it = data_->index.find(track);
+                for (auto seq_it : map_it->second)
+                {
+                    data_->sequence.erase(seq_it);
+                }
+                data_->index.erase(map_it);
             }
-            data_->index.erase(map_it);
+            catch (...)
+            {
+                reverseDetach();
+                throw;
+            }
+
+            finalizeDetach();
         }
 
         // Clears the playlist.
