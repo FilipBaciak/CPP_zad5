@@ -1,0 +1,83 @@
+playlist_test.cpp: In function ‘int main()’:
+playlist_test.cpp:547:17: error: no match for ‘operator=’ (operand types are ‘const std::pair<unsigned int, unsigned int>’ and ‘<brace-enclosed initializer list>’)
+  547 |   p2 = {121, 177}; // Nie kompiluje się.
+      |                 ^
+playlist_test.cpp:547:17: note: there are 10 candidates
+In file included from /usr/include/c++/15.2.1/bits/stl_algobase.h:64,
+                 from /usr/include/c++/15.2.1/list:64,
+                 from playlist.h:4,
+                 from playlist_test.cpp:4:
+/usr/include/c++/15.2.1/bits/stl_pair.h:611:7: note: candidate 1: ‘constexpr std::pair<_T1, _T2>& std::pair<_T1, _T2>::operator=(const std::pair<_T1, _T2>&) requires  _S_assignable<const _T1&, const _T2&>() [with _T1 = unsigned int; _T2 = unsigned int]’ (near match)
+  611 |       operator=(const pair& __p)
+      |       ^~~~~~~~
+/usr/include/c++/15.2.1/bits/stl_pair.h:611:7: note: passing ‘const std::pair<unsigned int, unsigned int>*’ as ‘this’ argument discards qualifiers
+/usr/include/c++/15.2.1/bits/stl_pair.h:622:7: note: candidate 2: ‘constexpr std::pair<_T1, _T2>& std::pair<_T1, _T2>::operator=(std::pair<_T1, _T2>&&) requires  _S_assignable<_T1, _T2>() [with _T1 = unsigned int; _T2 = unsigned int]’ (near match)
+  622 |       operator=(pair&& __p)
+      |       ^~~~~~~~
+/usr/include/c++/15.2.1/bits/stl_pair.h:622:7: note: passing ‘const std::pair<unsigned int, unsigned int>*’ as ‘this’ argument discards qualifiers
+/usr/include/c++/15.2.1/bits/stl_pair.h:634:9: note: candidate 3: ‘template<class _U1, class _U2> constexpr std::pair<_T1, _T2>& std::pair<_T1, _T2>::operator=(const std::pair<_U1, _U2>&) requires  _S_assignable<const _U1&, const _U2&>() [with _U2 = _U1; _T1 = unsigned int; _T2 = unsigned int]’
+  634 |         operator=(const pair<_U1, _U2>& __p)
+      |         ^~~~~~~~
+/usr/include/c++/15.2.1/bits/stl_pair.h:634:9: note: template argument deduction/substitution failed:
+playlist_test.cpp:547:17: note:   couldn’t deduce template parameter ‘_U1’
+  547 |   p2 = {121, 177}; // Nie kompiluje się.
+      |                 ^
+/usr/include/c++/15.2.1/bits/stl_pair.h:646:9: note: candidate 4: ‘template<class _U1, class _U2> constexpr std::pair<_T1, _T2>& std::pair<_T1, _T2>::operator=(std::pair<_U1, _U2>&&) requires  _S_assignable<_U1, _U2>() [with _U2 = _U1; _T1 = unsigned int; _T2 = unsigned int]’
+  646 |         operator=(pair<_U1, _U2>&& __p)
+      |         ^~~~~~~~
+/usr/include/c++/15.2.1/bits/stl_pair.h:646:9: note: template argument deduction/substitution failed:
+playlist_test.cpp:547:17: note:   couldn’t deduce template parameter ‘_U1’
+  547 |   p2 = {121, 177}; // Nie kompiluje się.
+      |                 ^
+/usr/include/c++/15.2.1/bits/stl_pair.h:703:9: note: candidate 5: ‘template<class _UPair>  requires (__eligible_pair_like<_UPair, std::pair<_T1, _T2> >) && _S_assignable_from_tuple_like<_UPair>() constexpr std::pair<_T1, _T2>& std::pair<_T1, _T2>::operator=(_UPair&&) [with _T1 = unsigned int; _T2 = unsigned int]’
+  703 |         operator=(_UPair&& __p)
+      |         ^~~~~~~~
+/usr/include/c++/15.2.1/bits/stl_pair.h:703:9: note: template argument deduction/substitution failed:
+playlist_test.cpp:547:17: note:   couldn’t deduce template parameter ‘_UPair’
+  547 |   p2 = {121, 177}; // Nie kompiluje się.
+      |                 ^
+/usr/include/c++/15.2.1/bits/stl_pair.h:679:9: note: candidate 6: ‘template<class _U1, class _U2> constexpr const std::pair<_T1, _T2>& std::pair<_T1, _T2>::operator=(const std::pair<_U1, _U2>&) const requires  _S_const_assignable<const _U1&, const _U2&>() [with _U2 = _U1; _T1 = unsigned int; _T2 = unsigned int]’
+  679 |         operator=(const pair<_U1, _U2>& __p) const
+      |         ^~~~~~~~
+/usr/include/c++/15.2.1/bits/stl_pair.h:679:9: note: template argument deduction/substitution failed:
+playlist_test.cpp:547:17: note:   couldn’t deduce template parameter ‘_U1’
+  547 |   p2 = {121, 177}; // Nie kompiluje się.
+      |                 ^
+/usr/include/c++/15.2.1/bits/stl_pair.h:690:9: note: candidate 7: ‘template<class _U1, class _U2> constexpr const std::pair<_T1, _T2>& std::pair<_T1, _T2>::operator=(std::pair<_U1, _U2>&&) const requires  _S_const_assignable<_U1, _U2>() [with _U2 = _U1; _T1 = unsigned int; _T2 = unsigned int]’
+  690 |         operator=(pair<_U1, _U2>&& __p) const
+      |         ^~~~~~~~
+/usr/include/c++/15.2.1/bits/stl_pair.h:690:9: note: template argument deduction/substitution failed:
+playlist_test.cpp:547:17: note:   couldn’t deduce template parameter ‘_U1’
+  547 |   p2 = {121, 177}; // Nie kompiluje się.
+      |                 ^
+/usr/include/c++/15.2.1/bits/stl_pair.h:713:9: note: candidate 8: ‘template<class _UPair>  requires (__eligible_pair_like<_UPair, std::pair<_T1, _T2> >) && _S_const_assignable_from_tuple_like<_UPair>() constexpr const std::pair<_T1, _T2>& std::pair<_T1, _T2>::operator=(_UPair&&) const [with _T1 = unsigned int; _T2 = unsigned int]’
+  713 |         operator=(_UPair&& __p) const
+      |         ^~~~~~~~
+/usr/include/c++/15.2.1/bits/stl_pair.h:713:9: note: template argument deduction/substitution failed:
+playlist_test.cpp:547:17: note:   couldn’t deduce template parameter ‘_UPair’
+  547 |   p2 = {121, 177}; // Nie kompiluje się.
+      |                 ^
+/usr/include/c++/15.2.1/bits/stl_pair.h:658:7: note: candidate 9: ‘constexpr const std::pair<_T1, _T2>& std::pair<_T1, _T2>::operator=(const std::pair<_T1, _T2>&) const requires  _S_const_assignable<const first_type&, const second_type&>() [with _T1 = unsigned int; _T2 = unsigned int]’
+  658 |       operator=(const pair& __p) const
+      |       ^~~~~~~~
+/usr/include/c++/15.2.1/bits/stl_pair.h:658:7: note: constraints not satisfied
+/usr/include/c++/15.2.1/bits/stl_pair.h: In instantiation of ‘constexpr const std::pair<_T1, _T2>& std::pair<_T1, _T2>::operator=(const std::pair<_T1, _T2>&) const requires  _S_const_assignable<const first_type&, const second_type&>() [with _T1 = unsigned int; _T2 = unsigned int]’:
+playlist_test.cpp:547:17:   required from here
+  547 |   p2 = {121, 177}; // Nie kompiluje się.
+      |                 ^
+/usr/include/c++/15.2.1/bits/stl_pair.h:658:7:   required by the constraints of ‘template<class _T1, class _T2> constexpr const std::pair<_T1, _T2>& std::pair<_T1, _T2>::operator=(const std::pair<_T1, _T2>&) const requires  _S_const_assignable<const first_type&, const second_type&>()’
+/usr/include/c++/15.2.1/bits/stl_pair.h:659:75: note: the expression ‘_S_const_assignable<const first_type&, const second_type&>() [with _T1 = unsigned int; _T2 = unsigned int]’ evaluated to ‘false’
+  659 |       requires (_S_const_assignable<const first_type&, const second_type&>())
+      |                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~
+/usr/include/c++/15.2.1/bits/stl_pair.h:668:7: note: candidate 10: ‘constexpr const std::pair<_T1, _T2>& std::pair<_T1, _T2>::operator=(std::pair<_T1, _T2>&&) const requires  _S_const_assignable<first_type, second_type>() [with _T1 = unsigned int; _T2 = unsigned int]’
+  668 |       operator=(pair&& __p) const
+      |       ^~~~~~~~
+/usr/include/c++/15.2.1/bits/stl_pair.h:668:7: note: constraints not satisfied
+/usr/include/c++/15.2.1/bits/stl_pair.h: In instantiation of ‘constexpr const std::pair<_T1, _T2>& std::pair<_T1, _T2>::operator=(std::pair<_T1, _T2>&&) const requires  _S_const_assignable<first_type, second_type>() [with _T1 = unsigned int; _T2 = unsigned int]’:
+playlist_test.cpp:547:17:   required from here
+  547 |   p2 = {121, 177}; // Nie kompiluje się.
+      |                 ^
+/usr/include/c++/15.2.1/bits/stl_pair.h:668:7:   required by the constraints of ‘template<class _T1, class _T2> constexpr const std::pair<_T1, _T2>& std::pair<_T1, _T2>::operator=(std::pair<_T1, _T2>&&) const requires  _S_const_assignable<first_type, second_type>()’
+/usr/include/c++/15.2.1/bits/stl_pair.h:669:61: note: the expression ‘_S_const_assignable<first_type, second_type>() [with _T1 = unsigned int; _T2 = unsigned int]’ evaluated to ‘false’
+  669 |       requires (_S_const_assignable<first_type, second_type>())
+      |                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~

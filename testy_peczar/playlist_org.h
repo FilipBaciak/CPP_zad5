@@ -18,7 +18,6 @@ namespace cxx
     {
     private:
         struct Entry;
-        bool forceCopy = false;
 
         // Type aliases.
 
@@ -158,7 +157,6 @@ namespace cxx
 
         void finalizeDetach()
         {
-            forceCopy = false;
             safeguard_.reset();
         }
 
@@ -281,16 +279,13 @@ namespace cxx
 
         playlist() : data_(std::make_shared<Impl>()) {}
 
-        playlist(playlist const &other) : data_(other.data_)
-        {
-            if(other.forceCopy) detach();
-        }
+        playlist(playlist const &other) noexcept : data_(other.data_) {}
 
-        playlist(playlist &&other) : data_(std::move(other.data_)) {}
+        playlist(playlist &&other) noexcept : data_(std::move(other.data_)) {}
 
         ~playlist() noexcept = default;
 
-        playlist &operator=(playlist other)
+        playlist &operator=(playlist other) noexcept
         {
             std::swap(data_, other.data_);
             return *this;
@@ -389,7 +384,7 @@ namespace cxx
             // Detach into empty if possible, else just clean all data.
             if (data_ && data_.use_count() > 1)
             {
-                data_.reset();
+                data_ = std::make_shared<Impl>();
             }
             else if (data_)
             {
@@ -408,7 +403,6 @@ namespace cxx
         // performed (overshadowed by O(n log n) deep copy.
         P &params(play_iterator const &it)
         {
-            forceCopy = true;
             if (data_ && data_.use_count() > 1)
             {
                 // If data is shared, a detach is needed, as the user is provided
